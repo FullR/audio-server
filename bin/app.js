@@ -91,7 +91,7 @@ var FileTree = function FileTree(_ref3) {
   _classCallCheck(this, FileTree);
 
   this.paths = paths;
-  this.root = new Directory({ name: "root", path: "" });
+  this.root = new Directory({ name: "/", path: "" });
   paths.forEach(function (path) {
     return addVirtualFile(_this.root, path);
   });
@@ -140,6 +140,10 @@ var _lodash = require("lodash");
 
 var _lodash2 = _interopRequireDefault(_lodash);
 
+/*
+  Recursive component for displaying file/directory trees
+*/
+
 var File = (function (_React$Component) {
   _inherits(File, _React$Component);
 
@@ -149,7 +153,7 @@ var File = (function (_React$Component) {
     _get(Object.getPrototypeOf(File.prototype), "constructor", this).call(this, props);
     this.toggleOpen = this.toggleOpen.bind(this);
     this.state = {
-      open: true //this.props.isOpen(this)
+      open: true
     };
   }
 
@@ -167,6 +171,16 @@ var File = (function (_React$Component) {
       var file = this.props.file;
       var open = this.state.open;
 
+      var animTime = 0.25;
+      var childStyles = {
+        position: "relative",
+        marginLeft: 30,
+        overflow: "hidden",
+        maxHeight: open ? 9999 : 0,
+        opacity: open ? 1 : 0.25,
+        transition: "max-height " + animTime + "s ease-in-out, opacity " + animTime + "s ease-in-out"
+      };
+
       if (file.isDir) {
         return _react2["default"].createElement(
           "div",
@@ -181,13 +195,13 @@ var File = (function (_React$Component) {
               open ? "close" : "open"
             )
           ),
-          open ? _react2["default"].createElement(
+          _react2["default"].createElement(
             "div",
-            { style: { position: "relative", left: 20 } },
+            { style: childStyles },
             _lodash2["default"].map(file.children, function (childFile) {
               return _react2["default"].createElement(File, _extends({ key: childFile.path }, _this.props, { file: childFile, depth: _this.props.depth + 1 }));
             })
-          ) : null
+          )
         );
       } else {
         return this.props.renderFile(file);
@@ -200,9 +214,6 @@ var File = (function (_React$Component) {
 
 File.defaultProps = {
   depth: 0,
-  isOpen: function isOpen() {
-    return true;
-  },
   renderFile: function renderFile(file) {
     return _react2["default"].createElement(
       "div",
@@ -35384,8 +35395,9 @@ var Application = (function (_React$Component) {
     _get(Object.getPrototypeOf(Application.prototype), "constructor", this).call(this, props);
     this.updateFilter = this.updateFilter.bind(this);
     this.renderFile = this.renderFile.bind(this);
+    console.log(window.__DATA);
     this.state = {
-      files: [],
+      files: window.__DATA.files || [],
       filter: ""
     };
   }
@@ -35397,18 +35409,14 @@ var Application = (function (_React$Component) {
 
       (0, _superagent.get)("/api/files").end(function (err, res) {
         _this.setState({
-          files: res.body.map(function (path) {
-            return { path: path, name: last(path.split("/")) };
-          }),
+          files: res.body,
           filter: _this.state.filter
         });
       });
     }
   }, {
     key: "componentDidMount",
-    value: function componentDidMount() {
-      this.fetchFileList();
-    }
+    value: function componentDidMount() {}
   }, {
     key: "updateFilter",
     value: function updateFilter(event) {
@@ -35462,15 +35470,11 @@ var Application = (function (_React$Component) {
       });
       var fileTree = new _fileTree2["default"]({ paths: paths });
 
-      function isOpen(dir) {
-        return true; //dir.props.depth < 2 || (filter.length && dir.props.file.contains(filter));
-      }
-
       return _react2["default"].createElement(
         "div",
         null,
-        _react2["default"].createElement("input", { type: "text", value: filter, onChange: this.updateFilter }),
-        _react2["default"].createElement(_file2["default"], { file: fileTree.root, renderFile: this.renderFile, isOpen: isOpen })
+        _react2["default"].createElement("input", { type: "text", value: filter, onChange: this.updateFilter, placeholder: "Filter" }),
+        files && files.length ? _react2["default"].createElement(_file2["default"], { file: fileTree.root, renderFile: this.renderFile }) : null
       );
     }
   }]);
@@ -35484,5 +35488,7 @@ function last(arr) {
 
 console.log("---- Starting application");
 _react2["default"].render(_react2["default"].createElement(Application, null), document.body);
+
+//this.fetchFileList();
 
 },{"./file":2,"./file-tree":1,"./play-button":3,"react":160,"superagent":161}]},{},[166]);
