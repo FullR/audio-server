@@ -1,5 +1,5 @@
 {
-  "port": 8080,
-  "audioFileDir": "files",
+  "port": 8081,
+  "audioFileDir": "./sounds",
   "extentions": ["wav", "ogg"]
 }

@@ -1,4 +1,5 @@
 var config = require("./config");
+var path = require("path");
 var _ = require("lodash");
 var fs = require("fs");
 var express = require("express");
@@ -35,7 +36,7 @@ app.route("/")
   });
 
 app.use(express.static("bin"));
-app.use(express.static("files"));
+app.use(express.static(path.resolve(audioFileDir)));
 
 function template(options) {
   return templateString.replace("{{data}}", JSON.stringify(options, null, 4));
